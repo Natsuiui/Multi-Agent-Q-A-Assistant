@@ -3,5 +3,6 @@ requests
 nltk
 llama-cpp-python
 langchain
+langchain_community
 sentence-transformers
 faiss-cpu
