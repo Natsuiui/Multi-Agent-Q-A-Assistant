@@ -35,7 +35,10 @@ This project is a **retrieval-augmented generation (RAG)** based question-answer
   python agent_rag_pipeline.py
 ```
 
-2. Run the Web App:
+2. Run the Web App using streamlit (Recommended):
 ```bash
 streamlit run app.py
 ```
+3. Run the Web App using Flask:
+- run the python file.
+- go to http://127.0.0.1:5000 on your web browser.
