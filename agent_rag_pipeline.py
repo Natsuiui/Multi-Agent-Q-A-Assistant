@@ -25,7 +25,8 @@ nltk.data.path.append(str(Path(__file__).resolve().parent / "nltk_data"))
 BASE_DIR = Path(__file__).resolve().parent
 DOCS_DIR = BASE_DIR / "Documents"
 INDEX_DIR = BASE_DIR / "faiss_index"
-MODEL_NAME = "mistral-7b-instruct-v0.1.Q2_K.gguf"
+MODEL_NAME = str(BASE_DIR / "mistral-7b-instruct-v0.1.Q2_K.gguf")
+
 
 # Extract answer
 
