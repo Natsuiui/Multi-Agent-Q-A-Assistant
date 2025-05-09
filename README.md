@@ -40,5 +40,5 @@ This project is a **retrieval-augmented generation (RAG)** based question-answer
 streamlit run app.py
 ```
 3. Run the Web App using Flask:
-- run the python file.
-- go to http://127.0.0.1:5000 on your web browser.
+- run `flask_app.py`.
+- go to `http://127.0.0.1:5000` on your web browser.
