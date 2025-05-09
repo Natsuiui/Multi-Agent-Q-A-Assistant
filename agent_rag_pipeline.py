@@ -27,7 +27,6 @@ DOCS_DIR = BASE_DIR / "Documents"
 INDEX_DIR = BASE_DIR / "faiss_index"
 MODEL_NAME = str(BASE_DIR / "mistral-7b-instruct-v0.1.Q2_K.gguf")
 
-
 # Extract answer
 
 def extract_answer(text):
