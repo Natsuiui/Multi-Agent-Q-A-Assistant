@@ -89,8 +89,8 @@ def retrieve_top_k_chunks(vectorstore, query, k=3):
 
 # Load or Build VectorStore
 def get_vectorstore():
-    if os.path.exists("QA-Assistant/faiss_index"):
-        return FAISS.load_local("QA-Assistant/faiss_index", SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2"), allow_dangerous_deserialization=True)
+    if os.path.exists("faiss_index"):
+        return FAISS.load_local("faiss_index", SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2"), allow_dangerous_deserialization=True)
     else:
         file_paths = [
             str(base_dir / "faqs.txt"),
@@ -102,7 +102,7 @@ def get_vectorstore():
         docs = load_documents(file_paths)
         chunks = chunk_documents(docs)
         vs = build_faiss_index(chunks)
-        vs.save_local("QA-Assistant/faiss_index")
+        vs.save_local("faiss_index")
         return vs
 
 # Agent Initialization
