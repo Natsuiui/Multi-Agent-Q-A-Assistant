@@ -30,12 +30,12 @@ This project is a **retrieval-augmented generation (RAG)** based question-answer
 
 ## How to Run
 
-1. ***Run in Terminal:
+1. Run in Terminal:
 ```bash
   python agent_rag_pipeline.py
 ```
 
-2. ***Run the Web App:
+2. Run the Web App:
 ```bash
 streamlit run app.py
 ```
