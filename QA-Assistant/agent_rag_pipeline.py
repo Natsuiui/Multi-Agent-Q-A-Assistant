@@ -6,13 +6,16 @@ from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
+from pathlib import Path
+
+# Set NLTK data path
+import nltk
+nltk.data.path.append(str(Path(__file__).resolve().parent / "nltk_data"))
+from nltk.corpus import wordnet
 
 from llama_cpp import Llama
-from nltk.corpus import wordnet
 import re
-
 import warnings
-from pathlib import Path
 import logging
 
 os.environ["GGML_LOG_LEVEL"] = "ERROR"
