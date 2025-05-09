@@ -2,10 +2,13 @@ import os
 import streamlit as st
 from agent_rag_pipeline import get_vectorstore, process_query, retrieve_top_k_chunks
 
-# Ensure Streamlit binds to 0.0.0.0 and port 80 for Render (or other platforms)
+from download_model import download_model
+download_model()  # Will skip if already downloaded
+
+# Set Streamlit config for external access (adjust if local testing)
 if __name__ == "__main__":
-    os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"  # Make Streamlit accessible externally
-    os.environ["STREAMLIT_SERVER_PORT"] = "80"  # Use port 80 for Render's web service
+    os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"  # For cloud
+    os.environ["STREAMLIT_SERVER_PORT"] = "8501"        # Use 8501 for local testing
 
     st.set_page_config(page_title="Smart QA Demo", layout="centered")
     st.title("KSTech Smart Support Agent")

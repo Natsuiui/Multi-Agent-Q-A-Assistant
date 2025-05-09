@@ -1,8 +1,7 @@
 streamlit
+requests
 nltk
 llama-cpp-python
 langchain
-langchain-community
-faiss-cpu
 sentence-transformers
-tqdm
+faiss-cpu
