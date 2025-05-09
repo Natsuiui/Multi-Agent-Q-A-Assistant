@@ -1,38 +1,44 @@
+import os
 import streamlit as st
 from agent_rag_pipeline import get_vectorstore, process_query, retrieve_top_k_chunks
 
-st.set_page_config(page_title="Smart QA Demo", layout="centered")
-st.title("KSTech Smart Support Agent")
+# Ensure Streamlit binds to 0.0.0.0 and port 80 for Render (or other platforms)
+if __name__ == "__main__":
+    os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"  # Make Streamlit accessible externally
+    os.environ["STREAMLIT_SERVER_PORT"] = "80"  # Use port 80 for Render's web service
 
-@st.cache_resource
-def load_vs():
-    return get_vectorstore()
+    st.set_page_config(page_title="Smart QA Demo", layout="centered")
+    st.title("KSTech Smart Support Agent")
 
-vectorstore = load_vs()
+    @st.cache_resource
+    def load_vs():
+        return get_vectorstore()
 
-query = st.text_input("Ask your question here:")
+    vectorstore = load_vs()
 
-if query:
-    if any(kw in query.lower() for kw in ["calculate", "compute"]):
-        tool_used = "Calculator"
-        context = "Not applicable."
-    elif any(kw in query.lower() for kw in ["define", "meaning of", "what is the definition of"]):
-        tool_used = "Dictionary"
-        context = "Not applicable."
-    else:
-        tool_used = "RAG"
-        docs = retrieve_top_k_chunks(vectorstore, query)
-        context = "\n\n---\n\n".join([doc.page_content for doc in docs])
+    query = st.text_input("Ask your question here:")
 
-    with st.spinner("Thinking..."):
-        answer = process_query(query, vectorstore)
+    if query:
+        if any(kw in query.lower() for kw in ["calculate", "compute"]):
+            tool_used = "Calculator"
+            context = "Not applicable."
+        elif any(kw in query.lower() for kw in ["define", "meaning of", "what is the definition of"]):
+            tool_used = "Dictionary"
+            context = "Not applicable."
+        else:
+            tool_used = "RAG"
+            docs = retrieve_top_k_chunks(vectorstore, query)
+            context = "\n\n---\n\n".join([doc.page_content for doc in docs])
 
-    st.markdown(f"Tool/Agent Branch Used: `{tool_used}`")
-    if tool_used == "RAG":
-        st.markdown("Retrieved Context:")
-        st.text_area("Context Snippets", context, height=200)
-    else:
-        st.markdown("Retrieved Context: Not applicable.")
+        with st.spinner("Thinking..."):
+            answer = process_query(query, vectorstore)
 
-    st.markdown("Final Answer:")
-    st.success(answer)
+        st.markdown(f"Tool/Agent Branch Used: `{tool_used}`")
+        if tool_used == "RAG":
+            st.markdown("Retrieved Context:")
+            st.text_area("Context Snippets", context, height=200)
+        else:
+            st.markdown("Retrieved Context: Not applicable.")
+
+        st.markdown("Final Answer:")
+        st.success(answer)
