@@ -1,6 +1,11 @@
 import streamlit as st
 import logging
 from agent_rag_pipeline import get_vectorstore, process_query, retrieve_top_k_chunks
+import nltk
+try:
+    nltk.data.find("corpora/wordnet")
+except LookupError:
+    nltk.download("wordnet")
 
 # Setup
 st.set_page_config(page_title="Smart QA Demo", layout="centered")
