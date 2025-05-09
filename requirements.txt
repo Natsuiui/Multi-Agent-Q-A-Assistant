@@ -1,15 +1,15 @@
-streamlit>=1.30.0
-langchain>=0.1.0
-llama-cpp-python>=0.2.20
-nltk>=3.8.1
-faiss-cpu>=1.7.4
-sentence-transformers>=2.2.2
-transformers>=4.38.0
-torch>=2.1.0
-tqdm>=4.66.0
+streamlit
+langchain
+llama-cpp-python
+nltk
+faiss-cpu
+sentence-transformer
+transformers
+torch
+tqdm
 
 # If using local documents (e.g., TextLoader)
-unstructured>=0.10.11
+unstructured
 python-magic-bin; platform_system == "Windows"
 
 # Optional: If running on Apple Silicon
