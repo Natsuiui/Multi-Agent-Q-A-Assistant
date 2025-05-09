@@ -6,7 +6,7 @@ MODEL_FILENAME = "mistral-7b-instruct-v0.1.Q2_K.gguf"
 MODEL_PATH = Path(__file__).resolve().parent / MODEL_FILENAME
 
 # Replace with your actual file ID
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1BZYGTX0vxTsXtWmQUk4ZgkXWwfyK8DD4"
+MODEL_URL = "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q2_K.gguf"
 
 def download_model():
     if MODEL_PATH.exists():
