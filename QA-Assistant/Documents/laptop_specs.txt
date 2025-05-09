@@ -1,0 +1,7 @@
+Product: KSTech FlexBook 15
+- Display: 15.6" Retina
+- CPU: Intel i7 13th Gen
+- RAM: 16GB DDR5
+- Storage: 1TB SSD
+- GPU: NVIDIA RTX 4060
+- OS: KS_OS Pro
