@@ -46,7 +46,7 @@ NATURAL_MATH_REPLACEMENTS = {
     r"\bdivided by\b": "/",
     r"\bsquared\b": "**2",
     r"\bcubed\b": "**3",
-    r"\bsquare root of\b": "sqrt",
+    r"\bsquare root of\b": "sqrt",  # Fix for square root replacement
     r"\bcube root of\b": "cbrt",
     r"\bfactorial of\b": "factorial",
     r"\bto the power of (\d+)\b": r"**\1",
@@ -62,13 +62,17 @@ def wrap_functions(expr):
 def mock_calculator(query):
     try:
         expr = query.lower()
+        # Apply natural math replacements
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
+        
+        # Wrap functions like sqrt, factorial, cbrt with parentheses
         expr = wrap_functions(expr)
 
         # Optional: define cube root (sympy has no built-in cbrt)
         expr = re.sub(r'cbrt\(([^)]+)\)', r'(\1)**(1/3)', expr)
 
+        # Now try to evaluate the expression
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
