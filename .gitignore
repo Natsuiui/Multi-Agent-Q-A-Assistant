@@ -26,3 +26,6 @@ mistral-7b-instruct-v0.1.Q2_K.gguf
 # System files (macOS, Windows, etc.)
 .DS_Store
 Thumbs.db
+
+run_llm.sh
+run_ngrok.sh

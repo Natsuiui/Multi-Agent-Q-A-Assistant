@@ -121,7 +121,7 @@ def get_llm_response(prompt):
         response.raise_for_status()
         return response.json()["response"]
     except requests.exceptions.RequestException:
-        return "LLM is currently offline. Please contact kshitijsharma1106@gmail.com"
+        return "LLM is currently offline. Please contact kshitijsharma1106@gmail.com, or call +91 8448927161"
     except Exception as e:
         return f"Unexpected error: {e}"
 
