@@ -4,6 +4,7 @@ import logging
 import warnings
 from pathlib import Path
 import nltk
+import streamlit as st
 from langchain.agents import initialize_agent, Tool
 from langchain.agents.agent_types import AgentType
 from langchain_community.embeddings import SentenceTransformerEmbeddings
@@ -11,7 +12,7 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from nltk.corpus import wordnet
-"""from llama_cpp import Llama"""
+import requests
 
 # Logging and warnings
 os.environ["GGML_LOG_LEVEL"] = "ERROR"
@@ -57,23 +58,8 @@ tools = [
     Tool(name="Dictionary", func=mock_dictionary, description="Defines a term or acronym"),
 ]
 
-"""# Load local GGUF LLM model
-_llm_model = None
-
-def get_llm():
-    global _llm_model
-    if _llm_model is None:
-        _llm_model = Llama(
-            model_path=MODEL_NAME,
-            n_ctx=2048,
-            n_threads=6,
-            n_gpu_layers=32
-        )
-    return _llm_model"""
-
-import requests
-
-LLM_SERVER_URL = "https://0fc9-2405-201-4018-2c04-d48e-b2da-199a-f4bf.ngrok-free.app/generate"
+# Get the LLM server URL from Streamlit secrets
+LLM_SERVER_URL = st.secrets["general"]["LLM_SERVER_URL"]
 
 def get_llm_response(prompt):
     try:
@@ -84,7 +70,6 @@ def get_llm_response(prompt):
         return "LLM is currently offline. Please contact kshitijsharma1106@gmail.com"
     except Exception as e:
         return f"Unexpected error: {e}"
-
 
 # Load and chunk documents
 def load_documents(file_paths):
