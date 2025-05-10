@@ -49,8 +49,8 @@ NATURAL_MATH_REPLACEMENTS = {
     r"cube root of": "cbrt",
     r"to the power of (\d+)": r"**\1",
     r"factorial of": "factorial",
-    r"less": "-",
-    r"more": "+",
+    r"less than": "<",
+    r"more than": ">",
 }
 
 def mock_calculator(query):
@@ -151,7 +151,7 @@ def process_query(query, vectorstore):
     logging.info(f"Received query: {query}")
     math_keywords = [
         "calculate", "compute", "plus", "minus", "times", "multiplied", "divided",
-        "square", "cube", "root", "factorial", "less", "more", "to the power of"
+        "square", "cube", "root", "factorial", "less than", "more than", "to the power of"
     ]
     if any(kw in query.lower() for kw in math_keywords):
         return mock_calculator(query)
