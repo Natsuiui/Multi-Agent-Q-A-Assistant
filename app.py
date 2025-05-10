@@ -3,8 +3,9 @@ import streamlit as st
 from agent_rag_pipeline import get_vectorstore, process_query, retrieve_top_k_chunks
 
 if __name__ == "__main__":
-    os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"  # For cloud deployment
-    os.environ["STREAMLIT_SERVER_PORT"] = "8501"        # Default local port
+    # For cloud deployment
+    os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"
+    os.environ["STREAMLIT_SERVER_PORT"] = "8501"
 
     st.set_page_config(page_title="Smart QA Demo", layout="centered")
     st.title("KSTech Smart Support Agent")
@@ -19,13 +20,20 @@ if __name__ == "__main__":
 
     if query:
         query_lower = query.lower()
-        if any(kw in query_lower for kw in ["calculate", "compute", "plus", "minus", "times", "multiplied by", "divided", "square", "cube", "root", "factorial", "less", "more", "to the power of"]):
+        MATH_KEYWORDS = [
+            "plus", "minus", "times", "multiplied by", "divided", "square", "cube",
+            "root", "factorial", "less than", "more than", "to the power of"
+        ]
+        DICT_KEYWORDS = ["define", "meaning of", "what is the definition of"]
+
+        if query_lower.startswith(("calculate", "compute")) or any(kw in query_lower for kw in MATH_KEYWORDS):
             tool_used = "Calculator"
-        elif any(kw in query_lower for kw in ["define", "meaning of", "what is the definition of"]):
+        elif any(kw in query_lower for kw in DICT_KEYWORDS):
             tool_used = "Dictionary"
         else:
             tool_used = "RAG"
 
+        # If using RAG, get context snippets
         if tool_used == "RAG":
             docs = retrieve_top_k_chunks(vectorstore, query)
             context = "\n\n---\n\n".join([doc.page_content for doc in docs])
