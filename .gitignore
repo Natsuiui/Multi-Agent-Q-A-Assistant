@@ -1,1 +1,28 @@
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# NLTK data
+nltk_data/
+
+# FAISS index files
+faiss_index/
+
+# Model files (if large, you may want to keep these out of version control)
 mistral-7b-instruct-v0.1.Q2_K.gguf
+
+# IDE/editor specific files
+.idea/
+.vscode/
+
+# System files (macOS, Windows, etc.)
+.DS_Store
+Thumbs.db
