@@ -38,30 +38,42 @@ import sympy
 from sympy import factorial, sqrt
 import re
 
+# Natural language to math symbol replacements
 NATURAL_MATH_REPLACEMENTS = {
-    r"plus": "+",
-    r"minus": "-",
-    r"times|multiplied by": "*",
-    r"divided by": "/",
-    r"squared": "**2",
-    r"cubed": "**3",
-    r"square root of": "sqrt",
-    r"cube root of": "cbrt",
-    r"to the power of (\d+)": r"**\1",
-    r"factorial of": "factorial",
-    r"less than": "<",
-    r"more than": ">",
+    r"\bplus\b": "+",
+    r"\bminus\b": "-",
+    r"\btimes\b|\bmultiplied by\b": "*",
+    r"\bdivided by\b": "/",
+    r"\bsquared\b": "**2",
+    r"\bcubed\b": "**3",
+    r"\bsquare root of\b": "sqrt",
+    r"\bcube root of\b": "cbrt",
+    r"\bfactorial of\b": "factorial",
+    r"\bto the power of (\d+)\b": r"**\1",
+    r"\bless than\b": "<",
+    r"\bmore than\b": ">",
 }
+
+# Add parentheses to math function calls like factorial 5 → factorial(5)
+def wrap_functions(expr):
+    expr = re.sub(r'\b(factorial|sqrt|cbrt)\s*\(?\s*(\d+(\.\d+)?)\s*\)?', r'\1(\2)', expr)
+    return expr
 
 def mock_calculator(query):
     try:
         expr = query.lower()
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
+        expr = wrap_functions(expr)
+
+        # Optional: define cube root (sympy has no built-in cbrt)
+        expr = re.sub(r'cbrt\(([^)]+)\)', r'(\1)**(1/3)', expr)
+
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
         return f"Calculation error: {e}"
+
 
 # Dictionary tool
 def mock_dictionary(query):
