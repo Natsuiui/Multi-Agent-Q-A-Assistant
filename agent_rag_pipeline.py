@@ -11,7 +11,6 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from nltk.corpus import wordnet
-# from llama_cpp import Llama
 
 # Logging and warnings
 os.environ["GGML_LOG_LEVEL"] = "ERROR"
@@ -35,7 +34,6 @@ def extract_answer(text):
 
 # Calculator tool
 import sympy
-import re
 from sympy import factorial
 
 # Replacements for natural language math terms
@@ -53,26 +51,30 @@ NATURAL_MATH_REPLACEMENTS = {
 }
 
 def wrap_functions(expr):
-    expr = re.sub(r'\b(factorial)\s*([\d.]+)', r'\1(\2)', expr)
+    expr = re.sub(r'(\d+)!', r'factorial(\1)', expr)  # Handle 5! → factorial(5)
+    expr = re.sub(r'\bfactorial\s*\(?\s*(\d+)\s*\)?', r'factorial(\1)', expr)  # normalize factorial usage
     return expr
 
 # Calculator function
 def mock_calculator(query):
     try:
-        expr = query.lower()
+        expr = query.lower().strip()
+
+        # Remove 'calculate' or 'compute' prefix
+        expr = re.sub(r"^(calculate|compute)\s*", "", expr)
 
         # Handle root phrases (e.g., square root of 25 → (25**0.5))
         expr = re.sub(r"square root of\s*(\d+(\.\d+)?)", r"(\1**0.5)", expr)
         expr = re.sub(r"cube root of\s*(\d+(\.\d+)?)", r"(\1**(1/3))", expr)
 
-        # Only replace natural-language patterns, avoid touching existing math syntax
+        # Only replace natural-language patterns
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
 
-        # Wrap special functions like factorial(5)
+        # Wrap special functions
         expr = wrap_functions(expr)
 
-        # Evaluate the expression safely
+        # Evaluate the expression
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
