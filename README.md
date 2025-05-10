@@ -4,6 +4,11 @@
 
 This project implements a **RAG-based (Retrieval-Augmented Generation)** assistant enhanced with **agentic logic** to intelligently handle user queries. It combines document retrieval with local LLM-based generation and dynamically routes queries based on intent (e.g., calculation, definition, or information retrieval).
 
+You can access the webapp using this link:
+https://multi-agent-q-a-ksharma.streamlit.app/
+
+If the LLM is offline please Email me at: kshitijsharma1106@gmail.com, the model is hosted locally and may not be up 24x7.
+
 ---
 
 ## Architecture Summary
