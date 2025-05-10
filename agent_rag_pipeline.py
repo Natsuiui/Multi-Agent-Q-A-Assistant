@@ -35,10 +35,9 @@ def extract_answer(text):
 
 # Calculator tool
 import sympy
-from sympy.parsing.sympy_parser import parse_expr
+from sympy import factorial, sqrt
 import re
 
-# Optional: Natural language mapping
 NATURAL_MATH_REPLACEMENTS = {
     r"plus": "+",
     r"minus": "-",
@@ -57,12 +56,8 @@ NATURAL_MATH_REPLACEMENTS = {
 def mock_calculator(query):
     try:
         expr = query.lower()
-
-        # Replace natural language terms with symbols/functions
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
-
-        # Evaluate the cleaned expression using sympy
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
@@ -154,7 +149,11 @@ def get_langchain_agent():
 # Query processor
 def process_query(query, vectorstore):
     logging.info(f"Received query: {query}")
-    if any(kw in query.lower() for kw in ["calculate", "compute"]):
+    math_keywords = [
+        "calculate", "compute", "plus", "minus", "times", "multiplied", "divided",
+        "square", "cube", "root", "factorial", "less", "more", "to the power of"
+    ]
+    if any(kw in query.lower() for kw in math_keywords):
         return mock_calculator(query)
     elif any(kw in query.lower() for kw in ["define", "meaning of", "what is the definition of"]):
         return mock_dictionary(query)
@@ -164,3 +163,4 @@ def process_query(query, vectorstore):
         prompt = f"""Answer the question based on the following context:\n\n{context}\n\nQuestion: {query}"""
         raw = get_llm_response(prompt)
         return extract_answer(raw)
+
