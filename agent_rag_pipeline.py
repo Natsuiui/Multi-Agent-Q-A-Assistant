@@ -71,12 +71,20 @@ def get_llm():
         )
     return _llm_model
 
+import requests
+
+LLM_SERVER_URL = "https://0fc9-2405-201-4018-2c04-d48e-b2da-199a-f4bf.ngrok-free.app/generate"
+
 def get_llm_response(prompt):
-    model = get_llm()
-    output = model(prompt, max_tokens=256, stop=["</s>"])
-    if isinstance(output, dict) and "choices" in output:
-        return output["choices"][0]["text"].strip()
-    return output.strip()
+    try:
+        response = requests.post(LLM_SERVER_URL, json={"prompt": prompt}, timeout=20)
+        response.raise_for_status()
+        return response.json()["response"]
+    except requests.exceptions.RequestException:
+        return "LLM is currently offline. Please contact kshitijsharma1106@gmail.com"
+    except Exception as e:
+        return f"Unexpected error: {e}"
+
 
 # Load and chunk documents
 def load_documents(file_paths):
