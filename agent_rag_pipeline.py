@@ -34,10 +34,36 @@ def extract_answer(text):
     return match.group(0) if match else text
 
 # Calculator tool
+import sympy
+from sympy.parsing.sympy_parser import parse_expr
+import re
+
+# Optional: Natural language mapping
+NATURAL_MATH_REPLACEMENTS = {
+    r"plus": "+",
+    r"minus": "-",
+    r"times|multiplied by": "*",
+    r"divided by": "/",
+    r"squared": "**2",
+    r"cubed": "**3",
+    r"square root of": "sqrt",
+    r"cube root of": "cbrt",
+    r"to the power of (\d+)": r"**\1",
+    r"factorial of": "factorial",
+    r"less": "-",
+    r"more": "+",
+}
+
 def mock_calculator(query):
     try:
-        expr = query.lower().replace("calculate", "").replace("compute", "").strip()
-        result = eval(expr)
+        expr = query.lower()
+
+        # Replace natural language terms with symbols/functions
+        for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
+            expr = re.sub(pattern, replacement, expr)
+
+        # Evaluate the cleaned expression using sympy
+        result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
         return f"Calculation error: {e}"
