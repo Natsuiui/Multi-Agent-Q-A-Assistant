@@ -35,29 +35,49 @@ def extract_answer(text):
 
 # Calculator tool
 import sympy
-from sympy import factorial, sqrt
+from sympy import factorial, sqrt, exp, log, sin, cos, tan, Abs
 import re
 
+# Extended natural language to math symbol/function replacements
 NATURAL_MATH_REPLACEMENTS = {
-    r"plus": "+",
-    r"minus": "-",
-    r"times|multiplied by": "*",
-    r"divided by": "/",
-    r"squared": "**2",
-    r"cubed": "**3",
-    r"square root of": "sqrt",
-    r"cube root of": "cbrt",
-    r"to the power of (\d+)": r"**\1",
-    r"factorial of": "factorial",
-    r"less than": "<",
-    r"more than": ">",
+    r"\bplus\b": "+",
+    r"\bminus\b": "-",
+    r"\btimes\b|\bmultiplied by\b": "*",
+    r"\bdivided by\b": "/",
+    r"\bsquared\b": "**2",
+    r"\bcubed\b": "**3",
+    r"\bto the power of (\d+)\b": r"**\1",
+    r"\bfactorial of\b": "factorial",
+    r"\bsquare root of\b": "sqrt",
+    r"\bcube root of\b": "cbrt",
+    r"\bexp of\b|\bexponential of\b": "exp",
+    r"\blog of\b": "log",
+    r"\bln of\b": "log",
+    r"\babsolute value of\b": "Abs",
+    r"\bmod of\b|\bmodulo of\b": "Mod",
+    r"\bsin of\b": "sin",
+    r"\bcos of\b": "cos",
+    r"\btan of\b": "tan",
+    r"\bless than\b": "<",
+    r"\bmore than\b": ">",
 }
+
+# Wrap functions like sqrt 16 -> sqrt(16), log 10 -> log(10)
+def wrap_functions(expr):
+    expr = re.sub(r'\b(factorial|sqrt|cbrt|exp|log|Abs|Mod|sin|cos|tan)\s*\(?\s*([\d\.\+\-\*/\(\)]+)\s*\)?', r'\1(\2)', expr)
+    return expr
 
 def mock_calculator(query):
     try:
         expr = query.lower()
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
+
+        expr = wrap_functions(expr)
+
+        # Replace cube root: cbrt(x) → (x)**(1/3)
+        expr = re.sub(r'cbrt\(([^)]+)\)', r'(\1)**(1/3)', expr)
+
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
