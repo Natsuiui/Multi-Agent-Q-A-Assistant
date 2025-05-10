@@ -11,29 +11,24 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from nltk.corpus import wordnet
+import requests
 import sympy
 from sympy import factorial, sqrt
-import requests
 
 # Logging and warnings
 os.environ["GGML_LOG_LEVEL"] = "ERROR"
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-# NLTK path and data download
+# NLTK setup
 BASE_DIR = Path(__file__).resolve().parent
 nltk.data.path.append(str(BASE_DIR / "nltk_data"))
 nltk.download('wordnet', download_dir=str(BASE_DIR / "nltk_data"), quiet=True)
 
-# Directories and model path
+# Paths
 DOCS_DIR = BASE_DIR / "Documents"
 INDEX_DIR = BASE_DIR / "faiss_index"
 MODEL_NAME = str(BASE_DIR / "mistral-7b-instruct-v0.1.Q2_K.gguf")
-
-# Extract answer
-def extract_answer(text):
-    match = re.search(r'Answer:.*', text, re.DOTALL)
-    return match.group(0) if match else text
 
 # Natural language to math symbol replacements
 NATURAL_MATH_REPLACEMENTS = {
@@ -43,31 +38,34 @@ NATURAL_MATH_REPLACEMENTS = {
     r"\bdivided by\b": "/",
     r"\bsquared\b": "**2",
     r"\bcubed\b": "**3",
-    r"\bsquare root of\b": "sqrt",
-    r"\bcube root of\b": "cbrt",
-    r"\bfactorial of\b": "factorial",
+    r"\bsquare root of\b": "sqrt ",
+    r"\bcube root of\b": "cbrt ",
+    r"\bfactorial of\b": "factorial ",
     r"\bto the power of (\d+)\b": r"**\1",
     r"\bless than\b": "<",
     r"\bmore than\b": ">",
 }
 
+# Calculator Tool
 def mock_calculator(query):
     try:
         expr = query.lower()
-        expr = re.sub(r"(calculate|compute|what is|the|of|value)", "", expr)
+        expr = re.sub(r"(calculate|compute|what is|the|of|value|result)", "", expr)
+
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
 
-        expr = re.sub(r'cbrt\s*\(?\s*([^)]+?)\s*\)?', r'(\1)**(1/3)', expr)
-        expr = re.sub(r'(sqrt|factorial)\s*\(?\s*([^)]+?)\s*\)?', r'\1(\2)', expr)
-        expr = expr.strip()
+        expr = re.sub(r'cbrt\s*(\d+(\.\d+)?)', r'(\1)**(1/3)', expr)
+        expr = re.sub(r'sqrt\s*(\d+(\.\d+)?)', r'sqrt(\1)', expr)
+        expr = re.sub(r'factorial\s*(\d+)', r'factorial(\1)', expr)
 
+        expr = expr.strip()
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
         return f"Calculation error: {e}"
 
-# Dictionary tool
+# Dictionary Tool
 def mock_dictionary(query):
     word = query.strip().split()[-1]
     synsets = wordnet.synsets(word)
@@ -76,13 +74,7 @@ def mock_dictionary(query):
     definitions = [f"{i+1}. ({syn.pos()}) {syn.definition()}" for i, syn in enumerate(synsets)]
     return "\n".join(definitions[:5])
 
-# Tool list
-tools = [
-    Tool(name="Calculator", func=mock_calculator, description="Performs calculations"),
-    Tool(name="Dictionary", func=mock_dictionary, description="Defines a term or acronym"),
-]
-
-# LLM Server Integration
+# LLM Response via API
 LLM_SERVER_URL = "https://0fc9-2405-201-4018-2c04-d48e-b2da-199a-f4bf.ngrok-free.app/generate"
 
 def get_llm_response(prompt):
@@ -95,7 +87,12 @@ def get_llm_response(prompt):
     except Exception as e:
         return f"Unexpected error: {e}"
 
-# Document processing
+# Helper: Extract answer from response
+def extract_answer(text):
+    match = re.search(r'Answer:.*', text, re.DOTALL)
+    return match.group(0) if match else text
+
+# FAISS-related logic
 def load_documents(file_paths):
     documents = []
     for path in file_paths:
@@ -114,7 +111,6 @@ def build_faiss_index(chunks):
 def retrieve_top_k_chunks(vectorstore, query, k=3):
     return vectorstore.similarity_search(query, k=k)
 
-# Load or build FAISS index
 def get_vectorstore():
     if INDEX_DIR.exists():
         return FAISS.load_local(INDEX_DIR, SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2"), allow_dangerous_deserialization=True)
@@ -128,19 +124,25 @@ def get_vectorstore():
         vs.save_local(INDEX_DIR)
         return vs
 
-# LangChain agent for future use
+# Agent (optional use)
 def get_langchain_agent():
     from langchain.chat_models import ChatOpenAI
     dummy_llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
-    return initialize_agent(tools=tools, llm=dummy_llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
+    return initialize_agent(tools=[
+        Tool(name="Calculator", func=mock_calculator, description="Performs calculations"),
+        Tool(name="Dictionary", func=mock_dictionary, description="Defines a term or acronym"),
+    ], llm=dummy_llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
 
-# Query processor
+# Query Processor (UPDATED)
 def process_query(query, vectorstore):
     logging.info(f"Received query: {query}")
     math_keywords = ["calculate", "compute", "plus", "minus", "times", "multiplied", "divided", "square", "cube", "root", "factorial", "less than", "more", "to the power of"]
-    if any(kw in query.lower() for kw in math_keywords):
+    dict_keywords = ["define", "meaning of", "what is the definition of"]
+
+    lower_query = query.lower()
+    if any(kw in lower_query for kw in math_keywords):
         return mock_calculator(query)
-    elif any(kw in query.lower() for kw in ["define", "meaning of", "what is the definition of"]):
+    elif any(kw in lower_query for kw in dict_keywords):
         return mock_dictionary(query)
     else:
         docs = retrieve_top_k_chunks(vectorstore, query)
