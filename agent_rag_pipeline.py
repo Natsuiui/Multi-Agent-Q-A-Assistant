@@ -61,23 +61,22 @@ def mock_calculator(query):
     try:
         expr = query.lower()
 
-        # Handle square root and cube root with number capture
+        # Handle root phrases (e.g., square root of 25 → (25**0.5))
         expr = re.sub(r"square root of\s*(\d+(\.\d+)?)", r"(\1**0.5)", expr)
         expr = re.sub(r"cube root of\s*(\d+(\.\d+)?)", r"(\1**(1/3))", expr)
 
-        # Apply simpler keyword-based replacements
+        # Only replace natural-language patterns, avoid touching existing math syntax
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
 
-        # Wrap function calls like factorial(5)
+        # Wrap special functions like factorial(5)
         expr = wrap_functions(expr)
 
-        # Evaluate expression using SymPy
+        # Evaluate the expression safely
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
         return f"Calculation error: {e}"
-
 
 # Dictionary tool
 def mock_dictionary(query):
