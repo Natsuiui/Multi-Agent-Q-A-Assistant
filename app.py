@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     if query:
         query_lower = query.lower()
-        if any(kw in query_lower for kw in ["calculate", "compute", "plus", "minus", "times", "divided", "square", "cube", "root", "factorial", "less", "more", "to the power of"]):
+        if any(kw in query_lower for kw in ["calculate", "compute", "plus", "minus", "times", "multiplied by", "divided", "square", "cube", "root", "factorial", "less", "more", "to the power of"]):
             tool_used = "Calculator"
         elif any(kw in query_lower for kw in ["define", "meaning of", "what is the definition of"]):
             tool_used = "Dictionary"
