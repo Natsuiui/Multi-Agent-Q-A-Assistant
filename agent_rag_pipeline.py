@@ -35,7 +35,8 @@ def extract_answer(text):
 
 # Calculator tool
 import sympy
-from sympy import factorial, sqrt
+import re
+from sympy import factorial
 
 # Replacements for natural language math terms
 NATURAL_MATH_REPLACEMENTS = {
@@ -45,7 +46,7 @@ NATURAL_MATH_REPLACEMENTS = {
     r"\bdivided by\b": "/",
     r"\bsquared\b|\bsquare\b": "**2",  # Fixed "square" keyword
     r"\bcubed\b": "**3",
-    r"\bsquare root of\b|\sqrt\b": "**0.5",  # Square root replaced with 0.5
+    r"\bsquare root of\b": "**0.5",  # Replace square root with **0.5
     r"\bcube root of\b": "**(1/3)",  # Cube root replaced with (1/3)
     r"\bfactorial of\b": "factorial",
     r"\bto the power of (\d+)\b": r"**\1",
@@ -53,9 +54,9 @@ NATURAL_MATH_REPLACEMENTS = {
     r"\bmore than\b": ">",
 }
 
-# Wrap functions (like factorial, sqrt, cbrt) with parentheses
+# Wrap functions (like factorial) with parentheses
 def wrap_functions(expr):
-    expr = re.sub(r'\b(factorial|sqrt|cbrt)\s*([\d.]+)', r'\1(\2)', expr)
+    expr = re.sub(r'\b(factorial)\s*([\d.]+)', r'\1(\2)', expr)
     return expr
 
 # Calculator function
@@ -66,7 +67,7 @@ def mock_calculator(query):
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
 
-        # Wrap functions like sqrt, factorial, cbrt with parentheses
+        # Wrap functions like factorial with parentheses
         expr = wrap_functions(expr)
 
         # Now try to evaluate the expression
