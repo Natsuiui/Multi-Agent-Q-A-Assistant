@@ -44,17 +44,14 @@ NATURAL_MATH_REPLACEMENTS = {
     r"\bminus\b": "-",
     r"\btimes\b|\bmultiplied by\b": "*",
     r"\bdivided by\b": "/",
-    r"\bsquared\b|\bsquare\b": "**2",  # Fixed "square" keyword
+    r"\bsquared\b|\bsquare\b": "**2",
     r"\bcubed\b": "**3",
-    r"\bsquare root of\b": "**0.5",  # Replace square root with **0.5
-    r"\bcube root of\b": "**(1/3)",  # Cube root replaced with (1/3)
     r"\bfactorial of\b": "factorial",
     r"\bto the power of (\d+)\b": r"**\1",
     r"\bless than\b": "<",
     r"\bmore than\b": ">",
 }
 
-# Wrap functions (like factorial) with parentheses
 def wrap_functions(expr):
     expr = re.sub(r'\b(factorial)\s*([\d.]+)', r'\1(\2)', expr)
     return expr
@@ -63,18 +60,24 @@ def wrap_functions(expr):
 def mock_calculator(query):
     try:
         expr = query.lower()
-        # Apply natural math replacements
+
+        # Handle square root and cube root with number capture
+        expr = re.sub(r"square root of\s*(\d+(\.\d+)?)", r"(\1**0.5)", expr)
+        expr = re.sub(r"cube root of\s*(\d+(\.\d+)?)", r"(\1**(1/3))", expr)
+
+        # Apply simpler keyword-based replacements
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
 
-        # Wrap functions like factorial with parentheses
+        # Wrap function calls like factorial(5)
         expr = wrap_functions(expr)
 
-        # Now try to evaluate the expression
+        # Evaluate expression using SymPy
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
         return f"Calculation error: {e}"
+
 
 # Dictionary tool
 def mock_dictionary(query):
