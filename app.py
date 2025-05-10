@@ -2,9 +2,22 @@ import os
 import streamlit as st
 from agent_rag_pipeline import get_vectorstore, process_query, retrieve_top_k_chunks
 
+# Define tool keywords
+CALC_KEYWORDS = {"calculate", "compute", "plus", "minus", "times", "multiplied by", "divided", "square", "cube", "root", "factorial", "less", "more", "to the power of"}
+DICT_KEYWORDS = {"define", "meaning of", "what is the definition of"}
+
+def detect_tool(query):
+    q = query.lower()
+    if any(kw in q for kw in CALC_KEYWORDS):
+        return "Calculator"
+    elif any(kw in q for kw in DICT_KEYWORDS):
+        return "Dictionary"
+    else:
+        return "RAG"
+
 if __name__ == "__main__":
-    os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"  # For cloud deployment
-    os.environ["STREAMLIT_SERVER_PORT"] = "8501"        # Default local port
+    os.environ["STREAMLIT_SERVER_ADDRESS"] = "0.0.0.0"
+    os.environ["STREAMLIT_SERVER_PORT"] = "8501"
 
     st.set_page_config(page_title="Smart QA Demo", layout="centered")
     st.title("KSTech Smart Support Agent")
@@ -15,16 +28,10 @@ if __name__ == "__main__":
 
     vectorstore = load_vs()
 
-    query = st.text_input("Ask your question here:")
+    query = st.text_input("Ask your question here:").strip()
 
     if query:
-        query_lower = query.lower()
-        if any(kw in query_lower for kw in ["calculate", "compute", "plus", "minus", "times", "multiplied by", "divided", "square", "cube", "root", "factorial", "less", "more", "to the power of"]):
-            tool_used = "Calculator"
-        elif any(kw in query_lower for kw in ["define", "meaning of", "what is the definition of"]):
-            tool_used = "Dictionary"
-        else:
-            tool_used = "RAG"
+        tool_used = detect_tool(query)
 
         if tool_used == "RAG":
             docs = retrieve_top_k_chunks(vectorstore, query)
@@ -33,7 +40,11 @@ if __name__ == "__main__":
             context = None
 
         with st.spinner("Thinking..."):
-            answer = process_query(query, vectorstore)
+            try:
+                answer = process_query(query, vectorstore)
+            except Exception as e:
+                st.error(f"Something went wrong: {e}")
+                answer = "Error occurred while processing your query."
 
         st.markdown(f"**Tool/Agent Branch Used:** `{tool_used}`")
 

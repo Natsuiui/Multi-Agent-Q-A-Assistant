@@ -11,7 +11,9 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from nltk.corpus import wordnet
-"""from llama_cpp import Llama"""
+import sympy
+from sympy import factorial, sqrt
+import requests
 
 # Logging and warnings
 os.environ["GGML_LOG_LEVEL"] = "ERROR"
@@ -33,11 +35,6 @@ def extract_answer(text):
     match = re.search(r'Answer:.*', text, re.DOTALL)
     return match.group(0) if match else text
 
-# Calculator tool
-import sympy
-from sympy import factorial, sqrt
-import re
-
 # Natural language to math symbol replacements
 NATURAL_MATH_REPLACEMENTS = {
     r"\bplus\b": "+",
@@ -46,7 +43,7 @@ NATURAL_MATH_REPLACEMENTS = {
     r"\bdivided by\b": "/",
     r"\bsquared\b": "**2",
     r"\bcubed\b": "**3",
-    r"\bsquare root of\b": "sqrt",  # Fix for square root replacement
+    r"\bsquare root of\b": "sqrt",
     r"\bcube root of\b": "cbrt",
     r"\bfactorial of\b": "factorial",
     r"\bto the power of (\d+)\b": r"**\1",
@@ -54,30 +51,21 @@ NATURAL_MATH_REPLACEMENTS = {
     r"\bmore than\b": ">",
 }
 
-# Add parentheses to math function calls like factorial 5 → factorial(5)
-def wrap_functions(expr):
-    expr = re.sub(r'\b(factorial|sqrt|cbrt)\s*\(?\s*(\d+(\.\d+)?)\s*\)?', r'\1(\2)', expr)
-    return expr
-
 def mock_calculator(query):
     try:
         expr = query.lower()
-        # Apply natural math replacements
+        expr = re.sub(r"(calculate|compute|what is|the|of|value)", "", expr)
         for pattern, replacement in NATURAL_MATH_REPLACEMENTS.items():
             expr = re.sub(pattern, replacement, expr)
-        
-        # Wrap functions like sqrt, factorial, cbrt with parentheses
-        expr = wrap_functions(expr)
 
-        # Optional: define cube root (sympy has no built-in cbrt)
-        expr = re.sub(r'cbrt\(([^)]+)\)', r'(\1)**(1/3)', expr)
+        expr = re.sub(r'cbrt\s*\(?\s*([^)]+?)\s*\)?', r'(\1)**(1/3)', expr)
+        expr = re.sub(r'(sqrt|factorial)\s*\(?\s*([^)]+?)\s*\)?', r'\1(\2)', expr)
+        expr = expr.strip()
 
-        # Now try to evaluate the expression
         result = sympy.sympify(expr, evaluate=True)
         return f"Result: {result}"
     except Exception as e:
         return f"Calculation error: {e}"
-
 
 # Dictionary tool
 def mock_dictionary(query):
@@ -94,22 +82,7 @@ tools = [
     Tool(name="Dictionary", func=mock_dictionary, description="Defines a term or acronym"),
 ]
 
-"""# Load local GGUF LLM model
-_llm_model = None
-
-def get_llm():
-    global _llm_model
-    if _llm_model is None:
-        _llm_model = Llama(
-            model_path=MODEL_NAME,
-            n_ctx=2048,
-            n_threads=6,
-            n_gpu_layers=32
-        )
-    return _llm_model"""
-
-import requests
-
+# LLM Server Integration
 LLM_SERVER_URL = "https://0fc9-2405-201-4018-2c04-d48e-b2da-199a-f4bf.ngrok-free.app/generate"
 
 def get_llm_response(prompt):
@@ -122,8 +95,7 @@ def get_llm_response(prompt):
     except Exception as e:
         return f"Unexpected error: {e}"
 
-
-# Load and chunk documents
+# Document processing
 def load_documents(file_paths):
     documents = []
     for path in file_paths:
@@ -156,7 +128,7 @@ def get_vectorstore():
         vs.save_local(INDEX_DIR)
         return vs
 
-# LangChain agent for optional use
+# LangChain agent for future use
 def get_langchain_agent():
     from langchain.chat_models import ChatOpenAI
     dummy_llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
@@ -165,10 +137,7 @@ def get_langchain_agent():
 # Query processor
 def process_query(query, vectorstore):
     logging.info(f"Received query: {query}")
-    math_keywords = [
-        "calculate", "compute", "plus", "minus", "times", "multiplied", "divided",
-        "square", "cube", "root", "factorial", "less than", "more", "to the power of"
-    ]
+    math_keywords = ["calculate", "compute", "plus", "minus", "times", "multiplied", "divided", "square", "cube", "root", "factorial", "less than", "more", "to the power of"]
     if any(kw in query.lower() for kw in math_keywords):
         return mock_calculator(query)
     elif any(kw in query.lower() for kw in ["define", "meaning of", "what is the definition of"]):
@@ -179,4 +148,3 @@ def process_query(query, vectorstore):
         prompt = f"""Answer the question based on the following context:\n\n{context}\n\nQuestion: {query}"""
         raw = get_llm_response(prompt)
         return extract_answer(raw)
-
