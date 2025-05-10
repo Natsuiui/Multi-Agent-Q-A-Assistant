@@ -11,7 +11,7 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from nltk.corpus import wordnet
-from llama_cpp import Llama
+"""from llama_cpp import Llama"""
 
 # Logging and warnings
 os.environ["GGML_LOG_LEVEL"] = "ERROR"
@@ -57,7 +57,7 @@ tools = [
     Tool(name="Dictionary", func=mock_dictionary, description="Defines a term or acronym"),
 ]
 
-# Load local GGUF LLM model
+"""# Load local GGUF LLM model
 _llm_model = None
 
 def get_llm():
@@ -69,7 +69,7 @@ def get_llm():
             n_threads=6,
             n_gpu_layers=32
         )
-    return _llm_model
+    return _llm_model"""
 
 import requests
 
