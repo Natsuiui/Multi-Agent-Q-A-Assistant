@@ -113,7 +113,7 @@ def get_llm():
 
 import requests
 
-LLM_SERVER_URL = "https://a340-2405-201-4018-2c04-20fa-2b60-b0ec-2c.ngrok-free.app/generate"
+LLM_SERVER_URL = "-"
 
 def get_llm_response(prompt):
     try:
